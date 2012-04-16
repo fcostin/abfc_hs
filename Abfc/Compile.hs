@@ -10,8 +10,11 @@ compile_macro_program_beta :: [LMacro] -> [LStatement]
 compile_macro_program_beta macros = let
         -- rewrite the body of the main user macro
         (MacroDef _ _ main_body) = unique_macro_by_name "main" macros
+        main_body' =apply_until_fixed (rewrite_rule_beta macros) main_body
+        header = [EnvBegin]
+        footer = [EnvEnd]
     in
-        apply_until_fixed (rewrite_rule_beta macros) main_body
+        header ++ main_body' ++ footer
 
 macro_rewrite_rule_alpha (MacroDef s params body) = let
         body' = apply_until_fixed rewrite_rule_alpha body
@@ -36,18 +39,25 @@ copy src dst = BuiltInCall "COPY" [(IdentArg src), (IdentArg dst)]
 clear :: LIdentifier -> LStatement
 clear x = BuiltInCall "CLEAR" [IdentArg x]
 
+begin_loop :: LIdentifier -> LStatement
+begin_loop x = BuiltInCall "BEGIN_LOOP" [IdentArg x]
+
+end_loop :: LIdentifier -> LStatement
+end_loop x = BuiltInCall "END_LOOP" [IdentArg x]
+
+
 expand_local :: LStatement -> [LStatement]
 expand_local s =
     case s of
         BuiltInCall "LOCAL" [IdentArg x] ->
-            [(EnvDeclare x), (EnvSet x AllocateLocal), (FreeLocalOnEnvExit (EnvGet x))]
+            [(EnvDeclare x), (EnvSet x AllocateLocal), (FreeLocalOnEnvExit x)]
         _ -> [s]
 
 expand_while_block :: LStatement -> [LStatement]
 expand_while_block s =
     case s of
         WhileBlock x statements ->
-            [EnvBegin, (BeginLoop x) ] ++ statements ++ [(EndLoop x), EnvEnd]
+            [EnvBegin, (begin_loop x) ] ++ statements ++ [(end_loop x), EnvEnd]
         _ -> [s]
 
 expand_if_block :: LStatement -> [LStatement]
@@ -55,8 +65,8 @@ expand_if_block s =
     case s of
         IfBlock x statements -> let
                 t = HiddenIdent "if_temp"
-                header = [EnvBegin, (local t), (copy x t), (BeginLoop t)]
-                footer = [(clear t), (EndLoop t), EnvEnd]
+                header = [EnvBegin, (local t), (copy x t), (begin_loop t)]
+                footer = [(clear t), (end_loop t), EnvEnd]
             in
                 header ++ statements ++ footer
         _ -> [s]

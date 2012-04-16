@@ -3,7 +3,7 @@ module Abfc.Macros where
 data LIdentifier = 
         Ident String |
         HiddenIdent String
-    deriving (Eq, Show)
+    deriving (Eq, Show, Ord)
 
 data LAddress =
         EnvGet LIdentifier |
@@ -31,9 +31,7 @@ data LStatement =
         EnvDeclare LIdentifier |
         EnvSet LIdentifier LAddress |
         EnvSetConstant LIdentifier LConstant |
-        FreeLocalOnEnvExit LAddress |
-        BeginLoop LIdentifier |
-        EndLoop LIdentifier |
+        FreeLocalOnEnvExit LIdentifier |
         WhileBlock LIdentifier [LStatement] |
         IfBlock LIdentifier [LStatement] |
         UserMacroCall String [LArgument] |
