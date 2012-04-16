@@ -5,6 +5,9 @@ import Abfc.Compile (compile_macro_program_alpha, compile_macro_program_beta)
 import Abfc.ParserMacros (Macro)
 import Abfc.Macros (LMacro, LStatement)
 
+print_body body = do
+    mapM_ putStrLn (map show body)
+
 do_compile parsed_program = do
     let macros = convert_program parsed_program
     let macros' = compile_macro_program_alpha macros
@@ -16,7 +19,7 @@ do_compile parsed_program = do
     putStrLn ">>> phase alpha output:"
     putStrLn (show macros')
     putStrLn ">>> phase beta output:"
-    putStrLn (show main_body)
+    print_body main_body
 
 -- [main entry point]
 main = do
