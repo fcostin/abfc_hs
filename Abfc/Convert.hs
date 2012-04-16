@@ -45,9 +45,9 @@ convert_arg :: Argument -> LArgument
 convert_arg a =
     case a of
         Abfc.ParserMacros.IdentArg x -> Abfc.Macros.IdentArg (convert_ident x)
-        StringConstantArg (StringLit s) -> StringConstant s
-        StringConstantArg (ArchStringLit s) -> ArchStringConstant s
-        IntConstantArg x -> IntConstant x
-        StackAddressArg x -> StackAddressConstant x
-        CharConstantArg c -> CharConstant c
+        StringConstantArg (StringLit s) -> Constant (StringConstant s)
+        StringConstantArg (ArchStringLit s) -> Constant (ArchStringConstant s)
+        IntConstantArg x -> Constant (IntConstant x)
+        StackAddressArg x -> Address (StackAddressConstant x)
+        CharConstantArg c -> Constant (CharConstant c)
 

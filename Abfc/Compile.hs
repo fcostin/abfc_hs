@@ -85,9 +85,11 @@ unique_macro_by_name s ms = let
 
 -- produce list of statements binding local parameters to arguments
 bind :: (LArgument, LIdentifier) -> [LStatement]
-bind arg param =
+bind (arg, param) =
     case arg of
-        IdentArg a -> [(EnvDeclare param), (EnvSet param (OuterEnvGet a))]
+        IdentArg x -> [(EnvDeclare param), (EnvSet param (OuterEnvGet x))]
+        Address x -> [(EnvDeclare param), (EnvSet param x)]
+        Constant c -> [(EnvDeclare param), (EnvSetConstant param c)]
 
 inline_macro_body :: LMacro -> [LArgument] -> [LStatement]
 inline_macro_body (MacroDef _ params body) args = let

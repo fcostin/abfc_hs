@@ -5,28 +5,33 @@ data LIdentifier =
         HiddenIdent String
     deriving (Eq, Show)
 
-data LValue =
+data LAddress =
         EnvGet LIdentifier |
         OuterEnvGet LIdentifier |
-        AllocateLocal
+        AllocateLocal |
+        StackAddressConstant Int
+    deriving (Eq, Show)
+
+data LConstant =
+        IntConstant Int |
+        CharConstant Char |
+        StringConstant String |
+        ArchStringConstant String
     deriving (Eq, Show)
 
 data LArgument =
         IdentArg LIdentifier |
-        Value LValue |
-        IntConstant Int |
-        CharConstant Char |
-        StringConstant String |
-        ArchStringConstant String |
-        StackAddressConstant Int
+        Address LAddress |
+        Constant LConstant
     deriving (Eq, Show)
 
 data LStatement =
         EnvBegin |
         EnvEnd |
         EnvDeclare LIdentifier |
-        EnvSet LIdentifier LValue |
-        FreeLocalOnEnvExit LValue |
+        EnvSet LIdentifier LAddress |
+        EnvSetConstant LIdentifier LConstant |
+        FreeLocalOnEnvExit LAddress |
         BeginLoop LIdentifier |
         EndLoop LIdentifier |
         WhileBlock LIdentifier [LStatement] |
