@@ -1,3 +1,5 @@
 build/
-src/*.hi
-src/*.o
+*.hi
+*.o
+*.swp
+*~
