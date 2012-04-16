@@ -3,9 +3,10 @@ module Abfc.Eval where
 import qualified Abfc.Env as Env
 import qualified Abfc.Allocator as Alloc
 import qualified Abfc.Machine as Bf
-import qualified Abfc.MachineCodegen as Codegen
 import Data.Maybe (catMaybes)
 import Abfc.Macros
+import Abfc.ResolvedArg
+import Abfc.BuiltInDispatch (call_built_in)
 
 evaluate :: [LStatement] -> [String]
 evaluate statements = eval_statements statements Env.root Bf.initial Alloc.initial []
@@ -78,13 +79,6 @@ deallocate ((StackAddressConstant c):xs) alloc = let
     in deallocate xs alloc'
 deallocate [] alloc = alloc
 
-data ResolvedArg =
-        IntLiteral Int |
-        CharLiteral Char |
-        StringLiteral String |
-        AddressLiteral Int
-    deriving (Eq, Show)
-
 lookup_arg :: LArgument -> Env.Env -> ResolvedArg
 lookup_arg arg env =
     case arg of
@@ -101,6 +95,3 @@ lookup_arg arg env =
         Constant (ArchStringConstant x) -> StringLiteral ("arch" ++ x) -- XXX TODO
         _ -> error ("Error: cannot evaluate argument: " ++ show arg)
 
-call_built_in :: String -> [ResolvedArg] -> Bf.Machine -> Alloc.Allocator -> (String, Bf.Machine, Alloc.Allocator)
-
-call_built_in name args machine alloc = (("call " ++ name ++ " with args " ++ show args), machine, alloc)

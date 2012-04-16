@@ -92,7 +92,7 @@ type MachineAction = Machine -> ([Char], Machine)
         (ops', bf') = f bf
         (ops'', bf'') = g bf'
     in
-        (ops'' ++ ops', bf'')
+        (ops' ++ ops'', bf'') -- nb note concat order!
 
 id :: MachineAction
 id bf = ([], bf)
