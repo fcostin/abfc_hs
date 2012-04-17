@@ -41,7 +41,7 @@ allocate :: Int -> CodeGenAction
 allocate addr bf alloc = let
         alloc' = mark_cell_used (StackAddressConstant addr) alloc
     in
-        ([], bf, alloc)
+        ([], bf, alloc')
 
 -- deallocate the cell at the given address
 free :: Int -> CodeGenAction
