@@ -54,5 +54,10 @@ call_built_in "PUT_STRING_CONSTANT" [StringLiteral s] bf alloc = C.put_string_co
 
 
 
+call_built_in "GROW_STACK" [IntLiteral n] bf alloc = C.grow_stack n bf alloc
+call_built_in "SHRINK_STACK" [IntLiteral n] bf alloc = C.shrink_stack n bf alloc
+
+
+
 call_built_in name args machine alloc = (("unknown call " ++ name ++ " with args " ++ show args), machine, alloc)
 

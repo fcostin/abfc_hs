@@ -10,8 +10,7 @@ module Abfc.Machine (
     write,
     begin,
     end,
-    (Abfc.Machine.>>),
-    chain) where
+    move_stack_pointer) where
 
 
 -- Bf buffer_size data_pointer stack_pointer loop_stack
@@ -86,16 +85,7 @@ end (Bf n dp sp stack) =
         _ -> error "Machine Error: end loop without begin loop"
 
 
-type MachineAction = Machine -> ([Char], Machine)
-(>>) :: MachineAction -> MachineAction -> MachineAction
-(>>) f g bf = let
-        (ops', bf') = f bf
-        (ops'', bf'') = g bf'
-    in
-        (ops' ++ ops'', bf'') -- nb note concat order!
+move_stack_pointer :: Int -> Machine -> ([Char], Machine)
+move_stack_pointer 0 bf  = ([], bf)
+move_stack_pointer offset (Bf n dp sp stack) = ([], validated (Bf n dp (sp + offset) stack))
 
-id :: MachineAction
-id bf = ([], bf)
-
-chain :: [MachineAction] -> MachineAction
-chain actions = foldl (Abfc.Machine.>>) (Abfc.Machine.id) actions

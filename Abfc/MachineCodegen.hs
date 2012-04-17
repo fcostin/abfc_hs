@@ -2,8 +2,9 @@ module Abfc.MachineCodegen where
 
 import qualified Abfc.Machine as Machine
 import Abfc.Allocator
-import Abfc.Macros (LAddress(StackAddressConstant))
+import Abfc.Macros (LAddress, LAddress(StackAddressConstant))
 import qualified Data.Char
+import qualified Data.List as List
 
 -- define how to transform base machine actions into actions that also carry allocator state
 
@@ -27,6 +28,7 @@ read = allocless Machine.read
 write = allocless Machine.write
 begin = allocless Machine.begin
 end = allocless Machine.end
+move_stack_pointer n = allocless $ Machine.move_stack_pointer n
 
 -- define list of basic allocator actions
 
@@ -78,10 +80,6 @@ allocate_fourth f x y z bf alloc = let
         StackAddressConstant tmp = next_free_cell alloc
     in
         chain [allocate tmp, f x y z tmp, free tmp] bf alloc
- 
-
-
- 
 
 
 
@@ -293,3 +291,40 @@ put_string_constant s bf alloc = let
                     d | (d < 0) -> delta_encode xs c ((dec (-d)):acc)
                     d | (d == 0) -> delta_encode xs c acc
         delta_encode [] _ acc = acc
+
+
+
+grow_stack :: Int -> CodeGenAction
+grow_stack n bf alloc | (n > 0) = safely_relocate_stack n bf alloc
+grow_stack n bf alloc | (n == 0) = ([], bf, alloc)
+grow_stack n bf alloc | (n < 0) = error "MachineCodegen Error: refusing to grow stack by negative size"
+
+
+
+shrink_stack :: Int -> CodeGenAction
+shrink_stack n bf alloc | (n > 0) = safely_relocate_stack (-n) bf alloc
+shrink_stack n bf alloc | (n == 0) = ([], bf, alloc)
+shrink_stack n bf alloc | (n < 0) = error "MachineCodegen Error: refusing to shrink stack by negative size"
+
+safely_relocate_stack :: Int -> CodeGenAction
+safely_relocate_stack n bf alloc = let
+        offsets = map raw_address $ allocated_cells alloc
+        -- n.b. subtletly : relocation order is important. if we pick the
+        -- wrong ordering then we clobber cells before they are moved by
+        -- moving other cells onto them.
+        ordered_offsets = case n of
+            n | (n > 0) -> List.reverse $ List.sort offsets
+            n | (n < 0) -> List.sort offsets
+            0   -> []
+        relocations = relocate offsets n []
+    in
+        chain (relocations ++ [move_stack_pointer n]) bf alloc
+    where
+        raw_address :: LAddress -> Int
+        raw_address (StackAddressConstant x) = x
+
+        relocate :: [Int] -> Int -> [CodeGenAction] -> [CodeGenAction]
+        relocate (x:xs) n acc = relocate xs n ([move x (x + n), clear x] ++ acc)
+        relocate [] _ acc = acc
+
+
