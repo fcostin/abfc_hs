@@ -316,7 +316,7 @@ safely_relocate_stack n bf alloc = let
             n | (n > 0) -> List.reverse $ List.sort offsets
             n | (n < 0) -> List.sort offsets
             0   -> []
-        relocations = relocate offsets n []
+        relocations = relocate ordered_offsets n []
     in
         chain (relocations ++ [move_stack_pointer n]) bf alloc
     where
