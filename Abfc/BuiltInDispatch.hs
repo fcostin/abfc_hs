@@ -59,5 +59,5 @@ call_built_in "SHRINK_STACK" [IntLiteral n] bf alloc = C.shrink_stack n bf alloc
 
 
 
-call_built_in name args machine alloc = (("unknown call " ++ name ++ " with args " ++ show args), machine, alloc)
+call_built_in name args _ _ = error ("Error: undefined builtin call: " ++ (show (name, args)))
 
