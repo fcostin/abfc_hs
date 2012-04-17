@@ -9,10 +9,14 @@ import Abfc.Macros
 import Abfc.ResolvedArg
 import Abfc.BuiltInDispatch (call_built_in)
 
-evaluate :: [LStatement] -> [String]
+
+type DebugInfo = (String, [LArgument], [ResolvedArg])
+type Code = (String, DebugInfo)
+
+evaluate :: [LStatement] -> [Code]
 evaluate statements = eval_statements statements Env.root Bf.initial Alloc.initial []
 
-eval_statements :: [LStatement] -> Env.Env -> Bf.Machine -> Alloc.Allocator -> [String] -> [String]
+eval_statements :: [LStatement] -> Env.Env -> Bf.Machine -> Alloc.Allocator -> [Code] -> [Code]
 eval_statements statements env machine alloc code =
     case statements of
 
@@ -63,7 +67,8 @@ eval_statements statements env machine alloc code =
         (BuiltInCall x args):xs -> let
                 args' = map (\arg -> lookup_arg arg env) args
                 (ops, machine', alloc') = call_built_in x args' machine alloc
-                code' = (ops:code)
+                
+                code' = ((ops, (x, args, args')):code)
             in
                 eval_statements xs env machine' alloc' code'
 
