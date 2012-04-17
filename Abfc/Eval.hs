@@ -3,6 +3,7 @@ module Abfc.Eval where
 import qualified Abfc.Env as Env
 import qualified Abfc.Allocator as Alloc
 import qualified Abfc.Machine as Bf
+import qualified Data.Char
 import Data.Maybe (catMaybes)
 import Abfc.Macros
 import Abfc.ResolvedArg
@@ -90,7 +91,7 @@ lookup_arg arg env =
                         Just (StackAddressConstant x) -> AddressLiteral x
         Address (StackAddressConstant x) -> AddressLiteral x
         Constant (IntConstant x) -> IntLiteral x
-        Constant (CharConstant x) -> CharLiteral x
+        Constant (CharConstant x) -> IntLiteral (Data.Char.ord x)
         Constant (StringConstant x) -> StringLiteral x
         Constant (ArchStringConstant x) -> StringLiteral ("arch" ++ x) -- XXX TODO
         _ -> error ("Error: cannot evaluate argument: " ++ show arg)
