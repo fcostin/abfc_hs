@@ -44,7 +44,7 @@ eval_statements statements env machine alloc code =
                 eval_statements xs env' machine alloc' code
 
         (EnvSet k (OuterEnvGet k')):xs ->
-                case (Env.get_value k' env) of
+                case (Env.outer_get_value k' env) of
                     Just (Left address) -> let
                             x' = (EnvSet k address)
                         in
