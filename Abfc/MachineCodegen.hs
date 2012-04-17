@@ -277,20 +277,20 @@ put_string_constant s bf alloc = let
         StackAddressConstant tmp = next_free_cell alloc
         header = [allocate tmp, clear tmp]
         footer = [free tmp]
-        body = delta_encode s 0 []
+        body = delta_encode s tmp 0 []
     in
         chain (header ++ body ++ footer) bf alloc
     where
-        delta_encode :: String -> Int -> [CodeGenAction] -> [CodeGenAction]
-        delta_encode (x:xs) current acc = let
+        delta_encode :: String -> Int -> Int -> [CodeGenAction] -> [CodeGenAction]
+        delta_encode (x:xs) tmp current acc = let
                 c = Data.Char.ord x
                 delta = c - current
             in
                 case delta of
-                    d | (d > 0) -> delta_encode xs c ((inc d):acc)
-                    d | (d < 0) -> delta_encode xs c ((dec (-d)):acc)
-                    d | (d == 0) -> delta_encode xs c acc
-        delta_encode [] _ acc = acc
+                    d | (d > 0) -> delta_encode xs tmp c (acc ++ [inc d, put_char tmp])
+                    d | (d < 0) -> delta_encode xs tmp c (acc ++ [dec (-d), put_char tmp])
+                    d | (d == 0) -> delta_encode xs tmp c (acc ++ [put_char tmp])
+        delta_encode [] _ _ acc = acc
 
 
 
@@ -324,7 +324,7 @@ safely_relocate_stack n bf alloc = let
         raw_address (StackAddressConstant x) = x
 
         relocate :: [Int] -> Int -> [CodeGenAction] -> [CodeGenAction]
-        relocate (x:xs) n acc = relocate xs n ([move x (x + n), clear x] ++ acc)
+        relocate (x:xs) n acc = relocate xs n (acc ++ [move x (x + n), clear x])
         relocate [] _ acc = acc
 
 
