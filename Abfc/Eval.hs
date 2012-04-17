@@ -5,6 +5,7 @@ import qualified Abfc.Allocator as Alloc
 import qualified Abfc.Machine as Bf
 import qualified Data.Char
 import Data.Maybe (catMaybes)
+import Data.Either (lefts, rights)
 import Abfc.Macros
 import Abfc.ResolvedArg
 import Abfc.BuiltInDispatch (call_built_in)
@@ -27,7 +28,7 @@ eval_statements statements env machine alloc code =
 
         (EnvEnd):xs -> let
                 variables = Env.get_deallocation_list env
-                addresses = catMaybes $ map (\k -> Env.get_address k env) variables
+                addresses = lefts $ catMaybes $ map (\k -> Env.get_value k env) variables
                 alloc' = deallocate addresses alloc
                 env' = Env.end env
             in case Env.end env of
@@ -43,9 +44,9 @@ eval_statements statements env machine alloc code =
                 eval_statements xs env' machine alloc' code
 
         (EnvSet k (OuterEnvGet k')):xs ->
-                case (Env.get_address k' env) of
-                    Just addr -> let
-                            x' = (EnvSet k addr)
+                case (Env.get_value k' env) of
+                    Just (Left address) -> let
+                            x' = (EnvSet k address)
                         in
                             eval_statements (x':xs) env machine alloc code
 
@@ -89,11 +90,10 @@ lookup_arg :: LArgument -> Env.Env -> ResolvedArg
 lookup_arg arg env =
     case arg of
         IdentArg k ->
-            case (Env.get_constant k env) of
-                Just x -> lookup_arg (Constant x) env
-                Nothing ->
-                    case (Env.get_address k env) of
-                        Just (StackAddressConstant x) -> AddressLiteral x
+            case (Env.get_value k env) of
+                Just (Left address) -> lookup_arg (Address address) env
+                Just (Right constant) -> lookup_arg (Constant constant) env
+                Nothing -> error ("Env: cannot resolve arg lookup: " ++ (show arg))
         Address (StackAddressConstant x) -> AddressLiteral x
         Constant (IntConstant x) -> IntLiteral x
         Constant (CharConstant x) -> IntLiteral (Data.Char.ord x)
