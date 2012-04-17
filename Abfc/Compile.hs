@@ -101,9 +101,15 @@ bind (arg, param) =
         Address x -> [(EnvDeclare param), (EnvSet param x)]
         Constant c -> [(EnvDeclare param), (EnvSetConstant param c)]
 
+zip_matching_length :: [a] -> [b] -> [(a, b)]
+zip_matching_length as bs =
+    case (length as, length bs) of
+        (m, n) | (m == n) -> zip as bs
+        _ -> error "error: zip_matching_length length mismatch"
+
 inline_macro_body :: LMacro -> [LArgument] -> [LStatement]
 inline_macro_body (MacroDef _ params body) args = let
-        bindings = concat (map bind (zip args params))
+        bindings = concat (map bind (zip_matching_length args params))
         header = [EnvBegin] ++ bindings
         footer = [EnvEnd]
     in
