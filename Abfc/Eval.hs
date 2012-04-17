@@ -30,9 +30,9 @@ eval_statements statements env machine alloc code =
                 variables = Env.get_deallocation_list env
                 addresses = lefts $ catMaybes $ map (\k -> Env.get_value k env) variables
                 alloc' = deallocate addresses alloc
-                env' = Env.end env
-            in case Env.end env of
-                Just env' -> eval_statements xs env' machine alloc' code
+                Just env' = Env.end env
+            in
+                eval_statements xs env' machine alloc' code
 
         (EnvSet k AllocateLocal):xs -> let
                 addr = Alloc.next_free_cell alloc
@@ -41,12 +41,11 @@ eval_statements statements env machine alloc code =
             in
                 eval_statements xs env' machine alloc' code
 
-        (EnvSet k (OuterEnvGet k')):xs ->
-                case (Env.outer_get_value k' env) of
-                    Just (Left address) -> let
-                            x' = (EnvSet k address)
-                        in
-                            eval_statements (x':xs) env machine alloc code
+        (EnvSet k (OuterEnvGet k')):xs -> let
+                Just (Left address) = Env.outer_get_value k' env
+                x' = (EnvSet k address)
+            in
+                eval_statements (x':xs) env machine alloc code
 
         (EnvSet k (StackAddressConstant addr)):xs -> let
                 env' = Env.set_address k (StackAddressConstant addr) env
