@@ -1,3 +1,6 @@
+import System.Environment (getArgs)
+import System.Console.GetOpt
+
 import Abfc.Parser (parse_macro_program)
 import Abfc.Convert (convert_program)
 import Abfc.Compile (compile_macro_program_alpha, compile_macro_program_beta)
@@ -38,25 +41,44 @@ two_col_layout l m r ls rs = let
     in
         map f lrs
 
-format_annotated_code code = let
+debug_format code = let
         l_width = 40
         m_width = 10
         r_width = 40
-        f (a, b) = concat $ two_col_layout l_width m_width r_width a (show b)
+        f (a, b) = concat $ two_col_layout l_width m_width r_width a b
     in
         map f code
 
-do_compile parsed_program = do
-    let macros = convert_program parsed_program
-    let macros' = compile_macro_program_alpha macros
-    let main_body = compile_macro_program_beta macros'
-    let code = evaluate main_body
-    mapM_ putStrLn (format_annotated_code code)
+production_format code = [concat $ map fst code]
+
+compile parsed_program = let
+        macros = convert_program parsed_program
+        macros' = compile_macro_program_alpha macros
+        main_body = compile_macro_program_beta macros'
+        code = evaluate main_body
+    in
+        code
 
 -- [main entry point]
 main = do
-    macro_source <- getContents
-    case parse_macro_program macro_source of
-        Left e -> putStrLn ("parse error: " ++ (show e))
-        Right x -> do_compile x
-    putStrLn ""
+    args <- getArgs
+    case (getOpt RequireOrder options args) of
+        (flags, [], []) -> do
+            let formatter = if any (== Debug) flags then debug_format else production_format
+            macro_source <- getContents
+            case parse_macro_program macro_source of
+                Left e -> error $ "parse error: " ++ (show e)
+                Right parsed_macros -> mapM_ putStrLn $ formatter $ compile parsed_macros
+            putStrLn ""
+        (_, nonOpts, []) -> error $ "unrecognised arguments: " ++ unwords nonOpts
+        (_, _, msgs) -> error $ concat msgs ++ usageInfo header options
+
+
+data Flag = Debug
+    deriving (Eq)
+
+options :: [OptDescr Flag]
+options = [
+    Option ['d'] ["debug"] (NoArg Debug) "enable debugging output"]
+
+header = "Usage: main.out [OPTION...]"

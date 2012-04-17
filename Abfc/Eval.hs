@@ -11,7 +11,7 @@ import Abfc.ResolvedArg
 import Abfc.BuiltInDispatch (call_built_in)
 
 
-type DebugInfo = (String, [LArgument], [ResolvedArg])
+type DebugInfo = String
 type Code = (String, DebugInfo)
 
 evaluate :: [LStatement] -> [Code]
@@ -69,7 +69,7 @@ eval_statements statements env machine alloc code =
                 args' = map (\arg -> lookup_arg arg env) args
                 (ops, machine', alloc') = call_built_in x args' machine alloc
                 
-                code' = ((ops, (x, args, args')):code)
+                code' = ((ops, show (x, args, args')):code)
             in
                 eval_statements xs env machine' alloc' code'
 
