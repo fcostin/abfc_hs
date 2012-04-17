@@ -50,5 +50,9 @@ call_built_in "PUT_CHAR" [AddressLiteral src] bf alloc = C.put_char src bf alloc
 
 
 
+call_built_in "PUT_STRING_CONSTANT" [StringLiteral s] bf alloc = C.put_string_constant s bf alloc
+
+
+
 call_built_in name args machine alloc = (("unknown call " ++ name ++ " with args " ++ show args), machine, alloc)
 

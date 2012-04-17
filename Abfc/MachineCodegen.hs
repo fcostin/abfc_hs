@@ -3,6 +3,7 @@ module Abfc.MachineCodegen where
 import qualified Abfc.Machine as Machine
 import Abfc.Allocator
 import Abfc.Macros (LAddress(StackAddressConstant))
+import qualified Data.Char
 
 -- define how to transform base machine actions into actions that also carry allocator state
 
@@ -272,11 +273,23 @@ put_char src = chain [
     write]
 
 
-{- TODO
+
 put_string_constant :: String -> CodeGenAction
 put_string_constant s bf alloc = let
         StackAddressConstant tmp = next_free_cell alloc
+        header = [allocate tmp, clear tmp]
+        footer = [free tmp]
+        body = delta_encode s 0 []
     in
-        chain [allocate tmp, clear tmp, free tmp] bf alloc
-
--}
+        chain (header ++ body ++ footer) bf alloc
+    where
+        delta_encode :: String -> Int -> [CodeGenAction] -> [CodeGenAction]
+        delta_encode (x:xs) current acc = let
+                c = Data.Char.ord x
+                delta = c - current
+            in
+                case delta of
+                    d | (d > 0) -> delta_encode xs c ((inc d):acc)
+                    d | (d < 0) -> delta_encode xs c ((dec (-d)):acc)
+                    d | (d == 0) -> delta_encode xs c acc
+        delta_encode [] _ acc = acc
