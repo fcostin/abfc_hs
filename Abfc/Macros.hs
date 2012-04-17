@@ -28,7 +28,6 @@ data LArgument =
 data LStatement =
         EnvBegin |
         EnvEnd |
-        EnvDeclare LIdentifier |
         EnvSet LIdentifier LAddress |
         EnvSetConstant LIdentifier LConstant |
         FreeLocalOnEnvExit LIdentifier |

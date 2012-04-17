@@ -34,8 +34,6 @@ eval_statements statements env machine alloc code =
             in case Env.end env of
                 Just env' -> eval_statements xs env' machine alloc' code
 
-        (EnvDeclare _):xs -> eval_statements xs env machine alloc code -- EnvDeclare is ignored
-
         (EnvSet k AllocateLocal):xs -> let
                 addr = Alloc.next_free_cell alloc
                 alloc' = Alloc.mark_cell_used addr alloc

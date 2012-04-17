@@ -50,7 +50,7 @@ expand_local :: LStatement -> [LStatement]
 expand_local s =
     case s of
         BuiltInCall "LOCAL" [IdentArg x] ->
-            [(EnvDeclare x), (EnvSet x AllocateLocal), (FreeLocalOnEnvExit x)]
+            [(EnvSet x AllocateLocal), (FreeLocalOnEnvExit x)]
         _ -> [s]
 
 expand_while_block :: LStatement -> [LStatement]
@@ -97,9 +97,9 @@ unique_macro_by_name s ms = let
 bind :: (LArgument, LIdentifier) -> [LStatement]
 bind (arg, param) =
     case arg of
-        IdentArg x -> [(EnvDeclare param), (EnvSet param (OuterEnvGet x))]
-        Address x -> [(EnvDeclare param), (EnvSet param x)]
-        Constant c -> [(EnvDeclare param), (EnvSetConstant param c)]
+        IdentArg x -> [(EnvSet param (OuterEnvGet x))]
+        Address x -> [(EnvSet param x)]
+        Constant c -> [(EnvSetConstant param c)]
 
 zip_matching_length :: [a] -> [b] -> [(a, b)]
 zip_matching_length as bs =
