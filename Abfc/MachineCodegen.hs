@@ -244,7 +244,7 @@ logical_or_noalloc src_a src_b dst tmp = chain [
 
 
 logical_and :: Int -> Int -> Int -> CodeGenAction
-logical_and = allocate_fourth logical_or_noalloc
+logical_and = allocate_fourth logical_and_noalloc
 
 logical_and_noalloc :: Int -> Int -> Int -> Int -> CodeGenAction
 logical_and_noalloc src_a src_b dst tmp = chain [
