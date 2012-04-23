@@ -7,7 +7,7 @@ import Control.Monad
 -- (<*) is similar but returns a's result instead.
 import Control.Applicative ((*>), (<*))
 
-import Abfc.ParserMacros
+import Abfc.Macros
 
 -- [higher-order definitions for building parsers] 
 
@@ -69,9 +69,9 @@ allcaps_string_constant_p = let
     in
         liftM2 (:) (oneOf head_chars) (many $ oneOf tail_chars)
 
-keyword_identifier_p = liftM Keyword allcaps_string_constant_p
+keyword_identifier_p = allcaps_string_constant_p
 
-identifier_p :: CharParser () Identifier
+identifier_p :: CharParser () LIdentifier
 identifier_p = liftM Ident string_constant_p
 
 -- [Parsing of single-quoted string literals]
@@ -118,46 +118,46 @@ int_constant_p = let
 
 -- [Parsing of arch.XYZ constants]
 
--- n.b. this part of the grammar is a bit of a hack...
-
-arch_constant_p = liftM ArchStringLit $ string "arch." *> allcaps_string_constant_p
-
 -- [Parsing of arguments]
 
 arg_p = careful_choice [identifier_arg_p, int_arg_p, stack_arg_p, string_arg_p, char_arg_p]
 
-string_arg_p = liftM StringConstantArg $ make_wrapper_parser "STRING_CONSTANT" string_or_arch_constant_p
-int_arg_p = liftM IntConstantArg $ make_wrapper_parser "INT_CONSTANT" int_constant_p
-stack_arg_p = liftM StackAddressArg $ make_wrapper_parser "STACK_ADDRESS" int_constant_p
-char_arg_p = liftM CharConstantArg $ make_wrapper_parser "CHAR_CONSTANT" char_constant_p
+string_arg_p = liftM (Constant . StringConstant) $ make_wrapper_parser "STRING_CONSTANT" string_constant_p
+int_arg_p = liftM (Constant . IntConstant) $ make_wrapper_parser "INT_CONSTANT" int_constant_p
+stack_arg_p = liftM (Address . StackAddressConstant) $ make_wrapper_parser "STACK_ADDRESS" int_constant_p
+char_arg_p = liftM (Constant . CharConstant) $ make_wrapper_parser "CHAR_CONSTANT" char_constant_p
 identifier_arg_p = liftM IdentArg $ identifier_p
-
-string_or_arch_constant_p = (liftM StringLit $ string_constant_p) <|> arch_constant_p
 
 -- [Parsing of macro statements]
 
-macro_statement_p :: CharParser () Statement
+macro_statement_p :: CharParser () LStatement
 macro_statement_p = ws_p *> careful_choice [if_block_p, while_block_p, call_p] <* ws_p
 
-if_block_p :: CharParser () Statement
+if_block_p :: CharParser () LStatement
 if_block_p = make_macro_parser IfBlock if_block_head_p macro_statement_p
 
 if_block_head_p = make_wrapper_parser "IF" identifier_p
 
-while_block_p :: CharParser () Statement
+while_block_p :: CharParser () LStatement
 while_block_p = make_macro_parser WhileBlock while_block_head_p macro_statement_p
 
 while_block_head_p = make_wrapper_parser "WHILE" identifier_p
 
-call_p :: CharParser () Statement
-call_p = make_macro_parser CallKeyword keyword_identifier_p arg_p
+call_p :: CharParser () LStatement
+call_p = make_macro_parser make_call keyword_identifier_p arg_p
+
+make_call :: String -> [LArgument] -> LStatement
+make_call "CALL" ((IdentArg (Ident s)):args) = UserMacroCall s args
+make_call s args = BuiltInCall s args
 
 -- [Parsing of macro definitions]
 
-macro_def_p :: CharParser () Macro
-macro_def_p = make_macro_parser MacroDef macro_head_p macro_statement_p
+macro_def_p :: CharParser () LMacro
+macro_def_p = make_macro_parser make_macro_def macro_head_p macro_statement_p
 
 macro_head_p = make_wrapper_parser "DEF_MACRO" (sepEndBy identifier_p (ws_p >> char ',' >> ws_p))
+
+make_macro_def ((Ident name):params) statements = MacroDef name params statements
 
 -- [Parsing of macro programs]
 
@@ -165,5 +165,5 @@ macro_head_p = make_wrapper_parser "DEF_MACRO" (sepEndBy identifier_p (ws_p >> c
 program_p = ws_p *> (sepEndBy macro_def_p ws_p) <* eof
 
 -- [Top-level parse function definition]
-parse_macro_program :: String -> Either ParseError [Macro]
+parse_macro_program :: String -> Either ParseError [LMacro]
 parse_macro_program input = parse program_p "failure" input

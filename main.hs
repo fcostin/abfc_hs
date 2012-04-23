@@ -2,10 +2,8 @@ import System.Environment (getArgs)
 import System.Console.GetOpt
 
 import Abfc.Parser (parse_macro_program)
-import Abfc.Convert (convert_program)
 import Abfc.Compile (compile_macro_program_alpha, compile_macro_program_beta)
 
-import Abfc.ParserMacros (Macro)
 import Abfc.Macros (LMacro, LStatement)
 
 import Abfc.Eval (evaluate)
@@ -51,8 +49,7 @@ debug_format code = let
 
 production_format code = [concat $ map fst code]
 
-compile parsed_program = let
-        macros = convert_program parsed_program
+compile macros = let
         macros' = compile_macro_program_alpha macros
         main_body = compile_macro_program_beta macros'
         code = evaluate main_body
