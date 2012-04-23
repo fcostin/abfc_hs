@@ -95,6 +95,5 @@ lookup_arg arg env =
         Constant (IntConstant x) -> IntLiteral x
         Constant (CharConstant x) -> IntLiteral (Data.Char.ord x)
         Constant (StringConstant x) -> StringLiteral x
-        Constant (ArchStringConstant x) -> StringLiteral ("arch" ++ x) -- XXX TODO
         _ -> error ("Error: cannot evaluate argument: " ++ show arg)
 

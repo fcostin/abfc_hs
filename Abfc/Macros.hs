@@ -15,8 +15,7 @@ data LAddress =
 data LConstant =
         IntConstant Int |
         CharConstant Char |
-        StringConstant String |
-        ArchStringConstant String
+        StringConstant String
     deriving (Eq, Show)
 
 data LArgument =
