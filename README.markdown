@@ -1,21 +1,21 @@
 `abfc_hs` *work-in-progress*
 ============================
 
-Port of [abfc](http://github.com/fcostin/abfc) to Haskell, including its own [Parsec](http://www.haskell.org/haskellwiki/Parsec) parser for the macro language.
+Port of [abfc](http://github.com/fcostin/abfc) macro-language-to-brainfuck compiler to Haskell.
+
+This includes its own [Parsec](http://www.haskell.org/haskellwiki/Parsec) parser for the macro language.
 
 STATUS
 ------
 
-Successfully compiles `self_hosting_bf_compiler_x86_64_test.py`. The resulting brainfuck program functions correctly when used in `abfc`'s pipeline.
+Successfully compiles [`self_hosting_bf_compiler_x86_64_test.py`](https://github.com/fcostin/abfc_hs/blob/master/example_inputs/self_hosting_bf_compiler_x86_64_test.py). The resulting brainfuck program functions correctly when used in [abfc](http://github.com/fcostin/abfc)'s pipeline.
 
 COMPONENTS
 ----------
 
 +   `main` is the main definition for the command-line program
 +   `Parser` is the parsec macro parser
-+   `ParserMacros` is the datatype for the macro parsed by the parser
 +   `Macros` is the datatype for the compiler's internal macro representation
-+   `Convert` translates `ParserMacros` into `Macros`
 +   `Compile` performs macro-level transformations : rewriting local statements,
     if blocks, while blocks, and inlining all function calls, starting from the
     body of the main macro. This results in one huge list of simplified statements.
