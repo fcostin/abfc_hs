@@ -56,8 +56,6 @@ COMPONENTS
 TODO
 ----
 
-* refactor data types for internal rep. needs a LOT of cleaning up
-* rewrite parser to directly construct Macro instead of ParserMacro
 * learn how to eliminate boilerplate for "stateful" bits of computation in Machine, Allocator, Env, Eval, etc. State monad?
-* completely remove the special case `arch` string constants
 * refine the syntax accepted by the parser to be nicer - e.g. not an ugly python dsl
+
